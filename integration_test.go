@@ -82,12 +82,11 @@ func processClientInteraction(t *testing.T, config configuration.AppConfig) {
 	session, err := sshConnection.NewSession()
 	assert.NoError(t, err)
 
-	stdin, stdout, err := createPipe(session)
+	_, stdout, err := createPipe(session)
 	assert.NoError(t, err)
 
 	err = session.Start("echo 'Hello world!'")
 	assert.NoError(t, err)
-	err = stdin.Close()
 	if err != nil && !errors.Is(err, io.EOF) {
 		assert.NoError(t, err)
 	}
