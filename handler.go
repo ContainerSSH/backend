@@ -7,18 +7,24 @@ import (
 	"time"
 
 	"github.com/containerssh/configuration"
-	"github.com/containerssh/dockerrun"
-	"github.com/containerssh/kuberun"
+	"github.com/containerssh/docker"
+	"github.com/containerssh/kubernetes"
 	"github.com/containerssh/log"
+	"github.com/containerssh/metrics"
+	"github.com/containerssh/security"
 	"github.com/containerssh/sshserver"
 	"github.com/containerssh/structutils"
 )
 
 type handler struct {
-	config        configuration.AppConfig
-	configLoader  configuration.Loader
-	loggerFactory log.LoggerFactory
-	authResponse  sshserver.AuthResponse
+	config                 configuration.AppConfig
+	configLoader           configuration.Loader
+	loggerFactory          log.LoggerFactory
+	authResponse           sshserver.AuthResponse
+	metricsCollector       metrics.Collector
+	logger                 log.Logger
+	backendRequestsCounter metrics.Counter
+	backendErrorCounter    metrics.Counter
 }
 
 func (h *handler) OnReady() error {
@@ -89,29 +95,75 @@ func (n *networkHandler) initBackend(
 	username string,
 	appConfig configuration.AppConfig,
 	backendLogger log.Logger,
-) (_ sshserver.SSHConnectionHandler, failureReason error) {
+) (sshserver.SSHConnectionHandler, error) {
+	backend, failureReason := n.getConfiguredBackend(
+		appConfig,
+		backendLogger,
+		n.rootHandler.backendRequestsCounter.WithLabels(metrics.Label(MetricLabelBackend, appConfig.Backend)),
+		n.rootHandler.backendErrorCounter.WithLabels(metrics.Label(MetricLabelBackend, appConfig.Backend)),
+	)
+	if failureReason != nil {
+		return nil, failureReason
+	}
+
+	// Inject security overlay
+	n.backend, failureReason = security.New(appConfig.Security, backend)
+	if failureReason != nil {
+		return nil, failureReason
+	}
+
+	return n.backend.OnHandshakeSuccess(username)
+}
+
+func (n *networkHandler) getConfiguredBackend(
+	appConfig configuration.AppConfig,
+	backendLogger log.Logger,
+	backendRequestsCounter metrics.Counter,
+	backendErrorCounter metrics.Counter,
+) (backend sshserver.NetworkConnectionHandler, failureReason error) {
 	switch appConfig.Backend {
+	case "docker":
+		backend, failureReason = docker.New(
+			n.remoteAddr,
+			n.connectionID,
+			appConfig.Docker,
+			backendLogger,
+			backendRequestsCounter,
+			backendErrorCounter,
+		)
 	case "dockerrun":
-		n.backend, failureReason = dockerrun.New(
+		//goland:noinspection GoDeprecation
+		backend, failureReason = docker.NewDockerRun(
 			n.remoteAddr,
 			n.connectionID,
 			appConfig.DockerRun,
 			backendLogger,
+			backendRequestsCounter,
+			backendErrorCounter,
+		)
+	case "kubernetes":
+		backend, failureReason = kubernetes.New(
+			n.remoteAddr,
+			n.connectionID,
+			appConfig.Kubernetes,
+			backendLogger,
+			backendRequestsCounter,
+			backendErrorCounter,
 		)
 	case "kuberun":
-		n.backend, failureReason = kuberun.New(
+		//goland:noinspection GoDeprecation
+		backend, failureReason = kubernetes.NewKubeRun(
 			n.remoteAddr,
 			n.connectionID,
 			appConfig.KubeRun,
 			backendLogger,
+			backendRequestsCounter,
+			backendErrorCounter,
 		)
 	default:
 		failureReason = fmt.Errorf("invalid backend: %s", appConfig.Backend)
 	}
-	if failureReason != nil {
-		return nil, failureReason
-	}
-	return n.backend.OnHandshakeSuccess(username)
+	return backend, failureReason
 }
 
 func (n *networkHandler) loadConnectionSpecificConfig(
@@ -124,7 +176,7 @@ func (n *networkHandler) loadConnectionSpecificConfig(
 	defer cancelFunc()
 
 	appConfig := configuration.AppConfig{}
-	if err := structutils.Copy(&appConfig, n.rootHandler.config); err != nil {
+	if err := structutils.Copy(&appConfig, &n.rootHandler.config); err != nil {
 		return appConfig, fmt.Errorf("failed to copy application configuration (%w)", err)
 	}
 
@@ -137,11 +189,19 @@ func (n *networkHandler) loadConnectionSpecificConfig(
 	); err != nil {
 		return appConfig, fmt.Errorf("failed to load connections-specific configuration (%w)", err)
 	}
+
+	if err := appConfig.Validate(true); err != nil {
+		newErr := fmt.Errorf("configuration server returned invalid configuration (%w)", err)
+		n.rootHandler.logger.Warninge(newErr)
+		return appConfig, newErr
+	}
+
 	return appConfig, nil
 }
 
 func (n *networkHandler) OnDisconnect() {
 	if n.backend != nil {
 		n.backend.OnDisconnect()
+		n.backend = nil
 	}
 }

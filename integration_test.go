@@ -2,16 +2,15 @@ package backend_test
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"io"
-	"io/ioutil"
 	"net"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/containerssh/configuration"
+	"github.com/containerssh/geoip"
 	"github.com/containerssh/log"
+	"github.com/containerssh/metrics"
 	"github.com/containerssh/service"
 	"github.com/containerssh/sshserver"
 	"github.com/containerssh/structutils"
@@ -22,45 +21,65 @@ import (
 )
 
 func TestSimpleContainerLaunch(t *testing.T) {
-	config := configuration.AppConfig{}
-	structutils.Defaults(&config)
-	err := config.SSH.GenerateHostKey()
-	assert.NoError(t, err)
+	t.Parallel()
 
-	loggerFactory := log.NewFactory(os.Stdout)
+	lock := &sync.Mutex{}
+	for _, backendName := range []string{"docker", "dockerrun"} {
+		t.Run("backend="+backendName, func(t *testing.T) {
+			lock.Lock()
+			defer lock.Unlock()
+			config := configuration.AppConfig{}
+			structutils.Defaults(&config)
+			config.Backend = backendName
+			config.Auth.URL = "http://localhost:8080"
+			err := config.SSH.GenerateHostKey()
+			assert.NoError(t, err)
 
-	backendLogger, err := loggerFactory.Make(config.Log, "backend")
-	assert.NoError(t, err)
-	b, err := backend.New(
-		config,
-		backendLogger,
-		loggerFactory,
-		sshserver.AuthResponseSuccess,
-	)
-	assert.NoError(t, err)
+			loggerFactory := log.NewFactory(os.Stdout)
 
-	sshServerLogger, err := loggerFactory.Make(config.Log, "ssh")
-	assert.NoError(t, err)
-	sshServer, err := sshserver.New(config.SSH, b, sshServerLogger)
-	assert.NoError(t, err)
+			backendLogger, err := loggerFactory.Make(config.Log, "backend")
+			assert.NoError(t, err)
+			geoIPLookupProvider, err := geoip.New(
+				geoip.Config{
+					Provider: geoip.DummyProvider,
+				},
+			)
+			assert.NoError(t, err)
+			metricsCollector := metrics.New(
+				geoIPLookupProvider,
+			)
+			b, err := backend.New(
+				config,
+				backendLogger,
+				loggerFactory,
+				metricsCollector,
+				sshserver.AuthResponseSuccess,
+			)
+			assert.NoError(t, err)
 
-	lifecycle := service.NewLifecycle(sshServer)
-	running := make(chan struct{})
-	lifecycle.OnRunning(
-		func(s service.Service, l service.Lifecycle) {
-			running <- struct{}{}
+			sshServerLogger, err := loggerFactory.Make(config.Log, "ssh")
+			assert.NoError(t, err)
+			sshServer, err := sshserver.New(config.SSH, b, sshServerLogger)
+			assert.NoError(t, err)
+
+			lifecycle := service.NewLifecycle(sshServer)
+			running := make(chan struct{})
+			lifecycle.OnRunning(
+				func(s service.Service, l service.Lifecycle) {
+					running <- struct{}{}
+				})
+			go func() {
+				_ = lifecycle.Run()
+			}()
+			<-running
+
+			processClientInteraction(t, config)
+
+			lifecycle.Stop(context.Background())
+			err = lifecycle.Wait()
+			assert.NoError(t, err)
 		})
-	go func() {
-		_ = lifecycle.Run()
-	}()
-	<-running
-
-	processClientInteraction(t, config)
-
-	lifecycle.Stop(context.Background())
-	err = lifecycle.Wait()
-	assert.NoError(t, err)
-
+	}
 }
 
 func processClientInteraction(t *testing.T, config configuration.AppConfig) {
@@ -72,7 +91,9 @@ func processClientInteraction(t *testing.T, config configuration.AppConfig) {
 		return nil
 	}
 	sshConnection, err := ssh.Dial("tcp", config.SSH.Listen, clientConfig)
-	assert.NoError(t, err)
+	if !assert.NoError(t, err) {
+		return
+	}
 	defer func() {
 		if sshConnection != nil {
 			_ = sshConnection.Close()
@@ -82,31 +103,9 @@ func processClientInteraction(t *testing.T, config configuration.AppConfig) {
 	session, err := sshConnection.NewSession()
 	assert.NoError(t, err)
 
-	_, stdout, err := createPipe(session)
+	output, err := session.CombinedOutput("echo 'Hello world!'")
 	assert.NoError(t, err)
-
-	err = session.Start("echo 'Hello world!'")
-	assert.NoError(t, err)
-	if err != nil && !errors.Is(err, io.EOF) {
-		assert.NoError(t, err)
-	}
-	output, err := ioutil.ReadAll(stdout)
-	assert.NoError(t, err)
-
-	assert.NoError(t, session.Wait())
 
 	assert.NoError(t, sshConnection.Close())
 	assert.EqualValues(t, []byte("Hello world!\n"), output)
-}
-
-func createPipe(session *ssh.Session) (io.WriteCloser, io.Reader, error) {
-	stdin, err := session.StdinPipe()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to request stdin (%w)", err)
-	}
-	stdout, err := session.StdoutPipe()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to request stdout (%w)", err)
-	}
-	return stdin, stdout, nil
 }
