@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.3: Kubernetes and Metrics dependency update
+
+This release updates the [Kubernetes](https://github.com/containerssh/kubernetes) and [Metrics](https://github.com/containerssh/metrics) libraries to their latest version. 
+
 ## 0.9.2: Docker and Kubernetes backend
 
 This release introduces the new [Docker](https://github.com/containerssh/docker) and [Kubernetes](https://github.com/containerssh/kubernetes) backends.
