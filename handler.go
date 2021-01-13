@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/containerssh/configuration"
@@ -17,6 +18,8 @@ import (
 )
 
 type handler struct {
+	sshserver.AbstractHandler
+
 	config                 configuration.AppConfig
 	configLoader           configuration.Loader
 	loggerFactory          log.LoggerFactory
@@ -25,33 +28,29 @@ type handler struct {
 	logger                 log.Logger
 	backendRequestsCounter metrics.Counter
 	backendErrorCounter    metrics.Counter
-}
-
-func (h *handler) OnReady() error {
-	return nil
-}
-
-func (h *handler) OnShutdown(_ context.Context) {
-	//TODO send SIGTERM to containers?
+	lock                   *sync.Mutex
 }
 
 func (h *handler) OnNetworkConnection(
 	remoteAddr net.TCPAddr,
 	connectionID string,
 ) (sshserver.NetworkConnectionHandler, error) {
-	//TODO add early loading for some backends?
 	return &networkHandler{
 		rootHandler:  h,
 		remoteAddr:   remoteAddr,
 		connectionID: connectionID,
+		lock:         &sync.Mutex{},
 	}, nil
 }
 
 type networkHandler struct {
+	sshserver.AbstractNetworkConnectionHandler
+
 	rootHandler  *handler
 	remoteAddr   net.TCPAddr
 	connectionID string
 	backend      sshserver.NetworkConnectionHandler
+	lock         *sync.Mutex
 }
 
 func (n *networkHandler) OnAuthPassword(_ string, _ []byte) (response sshserver.AuthResponse, reason error) {
@@ -107,12 +106,13 @@ func (n *networkHandler) initBackend(
 	}
 
 	// Inject security overlay
-	n.backend, failureReason = security.New(appConfig.Security, backend)
+	backend, failureReason = security.New(appConfig.Security, backend)
 	if failureReason != nil {
 		return nil, failureReason
 	}
+	n.backend = backend
 
-	return n.backend.OnHandshakeSuccess(username)
+	return backend.OnHandshakeSuccess(username)
 }
 
 func (n *networkHandler) getConfiguredBackend(
@@ -200,8 +200,21 @@ func (n *networkHandler) loadConnectionSpecificConfig(
 }
 
 func (n *networkHandler) OnDisconnect() {
+	n.lock.Lock()
+	defer n.lock.Unlock()
 	if n.backend != nil {
 		n.backend.OnDisconnect()
 		n.backend = nil
+	}
+}
+
+func (n *networkHandler) OnShutdown(shutdownContext context.Context) {
+	n.lock.Lock()
+	if n.backend != nil {
+		backend := n.backend
+		n.lock.Unlock()
+		backend.OnShutdown(shutdownContext)
+	} else {
+		n.lock.Unlock()
 	}
 }

@@ -1,6 +1,8 @@
 package backend
 
 import (
+	"sync"
+
 	"github.com/containerssh/configuration"
 	"github.com/containerssh/log"
 	"github.com/containerssh/metrics"
@@ -45,5 +47,6 @@ func New(
 		logger:                 logger,
 		backendRequestsCounter: backendRequestsCounter,
 		backendErrorCounter:    backendErrorCounter,
+		lock:                   &sync.Mutex{},
 	}, nil
 }

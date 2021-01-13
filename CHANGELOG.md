@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.4: Bumping sshserver
+
+This release bumps the [sshserver library](https://github.com/containerssh/sserver) to version 0.9.16.
+
 ## 0.9.3: Kubernetes and Metrics dependency update
 
 This release updates the [Kubernetes](https://github.com/containerssh/kubernetes) and [Metrics](https://github.com/containerssh/metrics) libraries to their latest version. 
