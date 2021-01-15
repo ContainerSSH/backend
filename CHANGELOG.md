@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.6: Bumping security
+
+This release updates the security package (again) to support passing shutdown signals.
+
 ## 0.9.5: Bumping security
 
 This release updates the security package to support passing shutdown signals.
