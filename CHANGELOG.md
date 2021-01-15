@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.7: More bump
+
+Bumping to work around caching.
+
 ## 0.9.6: Bumping security
 
 This release updates the security package (again) to support passing shutdown signals.
