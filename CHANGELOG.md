@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.5: Bumping security
+
+This release updates the security package to support passing shutdown signals.
+
 ## 0.9.4: Bumping sshserver
 
 This release bumps the [sshserver library](https://github.com/containerssh/sserver) to version 0.9.16.
