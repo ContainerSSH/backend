@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.8: Logging update
+
+This release adds the new code-based logging.
+
 ## 0.9.7: More bump
 
 Bumping to work around caching.

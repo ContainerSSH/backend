@@ -14,7 +14,6 @@ import (
 func New(
 	config configuration.AppConfig,
 	logger log.Logger,
-	loggerFactory log.LoggerFactory,
 	metricsCollector metrics.Collector,
 	defaultAuthResponse sshserver.AuthResponse,
 ) (sshserver.Handler, error) {
@@ -41,7 +40,6 @@ func New(
 	return &handler{
 		config:                 config,
 		configLoader:           loader,
-		loggerFactory:          loggerFactory,
 		authResponse:           defaultAuthResponse,
 		metricsCollector:       metricsCollector,
 		logger:                 logger,

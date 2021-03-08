@@ -3,7 +3,6 @@ package backend_test
 import (
 	"context"
 	"net"
-	"os"
 	"sync"
 	"testing"
 
@@ -35,10 +34,7 @@ func TestSimpleContainerLaunch(t *testing.T) {
 			err := config.SSH.GenerateHostKey()
 			assert.NoError(t, err)
 
-			loggerFactory := log.NewFactory(os.Stdout)
-
-			backendLogger, err := loggerFactory.Make(config.Log, "backend")
-			assert.NoError(t, err)
+			backendLogger := log.NewTestLogger(t)
 			geoIPLookupProvider, err := geoip.New(
 				geoip.Config{
 					Provider: geoip.DummyProvider,
@@ -51,14 +47,12 @@ func TestSimpleContainerLaunch(t *testing.T) {
 			b, err := backend.New(
 				config,
 				backendLogger,
-				loggerFactory,
 				metricsCollector,
 				sshserver.AuthResponseSuccess,
 			)
 			assert.NoError(t, err)
 
-			sshServerLogger, err := loggerFactory.Make(config.Log, "ssh")
-			assert.NoError(t, err)
+			sshServerLogger := log.NewTestLogger(t)
 			sshServer, err := sshserver.New(config.SSH, b, sshServerLogger)
 			assert.NoError(t, err)
 

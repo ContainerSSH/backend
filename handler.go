@@ -22,7 +22,6 @@ type handler struct {
 
 	config                 configuration.AppConfig
 	configLoader           configuration.Loader
-	loggerFactory          log.LoggerFactory
 	authResponse           sshserver.AuthResponse
 	metricsCollector       metrics.Collector
 	logger                 log.Logger
@@ -36,6 +35,9 @@ func (h *handler) OnNetworkConnection(
 	connectionID string,
 ) (sshserver.NetworkConnectionHandler, error) {
 	return &networkHandler{
+		logger: h.logger.
+			WithLabel("connectionId", connectionID).
+			WithLabel("remoteAddr", remoteAddr.IP.String()),
 		rootHandler:  h,
 		remoteAddr:   remoteAddr,
 		connectionID: connectionID,
@@ -51,6 +53,7 @@ type networkHandler struct {
 	connectionID string
 	backend      sshserver.NetworkConnectionHandler
 	lock         *sync.Mutex
+	logger       log.Logger
 }
 
 func (n *networkHandler) OnAuthPassword(_ string, _ []byte) (response sshserver.AuthResponse, reason error) {
@@ -82,10 +85,7 @@ func (n *networkHandler) OnHandshakeSuccess(username string) (
 		return nil, err
 	}
 
-	backendLogger, err := n.rootHandler.loggerFactory.Make(appConfig.Log, appConfig.Backend)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create logger for backend (%w)", err)
-	}
+	backendLogger := n.rootHandler.logger.WithLevel(appConfig.Log.Level).WithLabel("username", username)
 
 	return n.initBackend(username, appConfig, backendLogger)
 }
@@ -106,7 +106,7 @@ func (n *networkHandler) initBackend(
 	}
 
 	// Inject security overlay
-	backend, failureReason = security.New(appConfig.Security, backend)
+	backend, failureReason = security.New(appConfig.Security, backend, n.logger)
 	if failureReason != nil {
 		return nil, failureReason
 	}
@@ -127,7 +127,7 @@ func (n *networkHandler) getConfiguredBackend(
 			n.remoteAddr,
 			n.connectionID,
 			appConfig.Docker,
-			backendLogger,
+			backendLogger.WithLabel("backend", "docker"),
 			backendRequestsCounter,
 			backendErrorCounter,
 		)
@@ -137,7 +137,7 @@ func (n *networkHandler) getConfiguredBackend(
 			n.remoteAddr,
 			n.connectionID,
 			appConfig.DockerRun,
-			backendLogger,
+			backendLogger.WithLabel("backend", "dockerrun"),
 			backendRequestsCounter,
 			backendErrorCounter,
 		)
@@ -146,7 +146,7 @@ func (n *networkHandler) getConfiguredBackend(
 			n.remoteAddr,
 			n.connectionID,
 			appConfig.Kubernetes,
-			backendLogger,
+			backendLogger.WithLabel("backend", "kubernetes"),
 			backendRequestsCounter,
 			backendErrorCounter,
 		)
@@ -156,7 +156,7 @@ func (n *networkHandler) getConfiguredBackend(
 			n.remoteAddr,
 			n.connectionID,
 			appConfig.KubeRun,
-			backendLogger,
+			backendLogger.WithLabel("backend", "kuberun"),
 			backendRequestsCounter,
 			backendErrorCounter,
 		)
@@ -192,7 +192,13 @@ func (n *networkHandler) loadConnectionSpecificConfig(
 
 	if err := appConfig.Validate(true); err != nil {
 		newErr := fmt.Errorf("configuration server returned invalid configuration (%w)", err)
-		n.rootHandler.logger.Warninge(newErr)
+		n.rootHandler.logger.Error(
+			log.Wrap(
+				err,
+				EConfig,
+				"configuration server returned invalid configuration",
+			),
+		)
 		return appConfig, newErr
 	}
 
