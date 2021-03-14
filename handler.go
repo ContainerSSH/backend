@@ -85,7 +85,7 @@ func (n *networkHandler) OnHandshakeSuccess(username string) (
 		return nil, err
 	}
 
-	backendLogger := n.rootHandler.logger.WithLevel(appConfig.Log.Level).WithLabel("username", username)
+	backendLogger := n.logger.WithLevel(appConfig.Log.Level).WithLabel("username", username)
 
 	return n.initBackend(username, appConfig, backendLogger)
 }
