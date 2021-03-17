@@ -13,15 +13,12 @@ require (
 	github.com/containerssh/metrics v0.9.8
 	github.com/containerssh/security v0.9.7
 	github.com/containerssh/service v0.9.3
-	github.com/containerssh/sshserver v0.9.19
+	github.com/containerssh/sshserver v0.9.20
 	github.com/containerssh/structutils v0.9.0
 	github.com/docker/spdystream v0.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/googleapis/gnostic v0.5.4 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/imdario/mergo v0.3.12 // indirect
-	github.com/magefile/mage v1.11.0 // indirect
-	github.com/mattn/go-shellwords v1.0.11 // indirect
 	github.com/oschwald/geoip2-golang v1.5.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/stretchr/testify v1.7.0
