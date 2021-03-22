@@ -3,7 +3,7 @@ module github.com/containerssh/backend
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.37.30 // indirect
+	github.com/aws/aws-sdk-go v1.38.2 // indirect
 	github.com/containerd/containerd v1.4.4 // indirect
 	github.com/containerssh/configuration v0.9.9
 	github.com/containerssh/docker v0.9.11
@@ -11,11 +11,12 @@ require (
 	github.com/containerssh/kubernetes v0.9.8
 	github.com/containerssh/log v0.9.13
 	github.com/containerssh/metrics v0.9.8
-	github.com/containerssh/security v0.9.7
+	github.com/containerssh/security v0.9.8
 	github.com/containerssh/service v0.9.3
-	github.com/containerssh/sshserver v0.9.19
+	github.com/containerssh/sshserver v0.9.20
 	github.com/containerssh/structutils v0.9.0
 	github.com/docker/spdystream v0.1.0 // indirect
+	github.com/golang/protobuf v1.5.1 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/googleapis/gnostic v0.5.4 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
@@ -26,12 +27,14 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
-	golang.org/x/oauth2 v0.0.0-20210311163135-5366d9dc1934 // indirect
-	golang.org/x/sys v0.0.0-20210309074719-68d13333faf2 // indirect
-	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d // indirect
+	golang.org/x/net v0.0.0-20210316092652-d523dce5a7f4 // indirect
+	golang.org/x/oauth2 v0.0.0-20210313182246-cd4f82c27b84 // indirect
+	golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4 // indirect
+	golang.org/x/term v0.0.0-20210317153231-de623e64d2a6 // indirect
 	golang.org/x/text v0.3.5 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20210312152112-fc591d9ea70f // indirect
+	google.golang.org/genproto v0.0.0-20210322173543-5f0e89347f5a // indirect
+	k8s.io/client-go v0.20.5 // indirect
 	k8s.io/klog/v2 v2.8.0 // indirect
 	k8s.io/utils v0.0.0-20210305010621-2afb4311ab10 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.0 // indirect
