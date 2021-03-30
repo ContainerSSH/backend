@@ -13,6 +13,7 @@ import (
 	"github.com/containerssh/log"
 	"github.com/containerssh/metrics"
 	"github.com/containerssh/security"
+	"github.com/containerssh/sshproxy"
 	"github.com/containerssh/sshserver"
 	"github.com/containerssh/structutils"
 )
@@ -157,6 +158,15 @@ func (n *networkHandler) getConfiguredBackend(
 			n.connectionID,
 			appConfig.KubeRun,
 			backendLogger.WithLabel("backend", "kuberun"),
+			backendRequestsCounter,
+			backendErrorCounter,
+		)
+	case "sshproxy":
+		backend, failureReason = sshproxy.New(
+			n.remoteAddr,
+			n.connectionID,
+			appConfig.SSHProxy,
+			backendLogger.WithLabel("backend", "sshproxy"),
 			backendRequestsCounter,
 			backendErrorCounter,
 		)

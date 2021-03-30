@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.9: SSH proxying
+
+This release adds support for the new [SSH proxy backend](https://github.com/containerssh/sshproxy).
+
 ## 0.9.8: Logging update
 
 This release adds the new code-based logging.
