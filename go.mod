@@ -3,21 +3,21 @@ module github.com/containerssh/backend
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.38.9 // indirect
-	github.com/containerssh/configuration v0.9.10
-	github.com/containerssh/docker v0.9.12
-	github.com/containerssh/geoip v0.9.4
-	github.com/containerssh/kubernetes v0.9.9
-	github.com/containerssh/log v0.9.13
-	github.com/containerssh/metrics v0.9.8
-	github.com/containerssh/security v0.9.8
-	github.com/containerssh/service v0.9.3
-	github.com/containerssh/sshproxy v0.9.0
-	github.com/containerssh/sshserver v0.9.24
-	github.com/containerssh/structutils v0.9.0
+	github.com/containerssh/auditlog v1.0.0 // indirect
+	github.com/containerssh/auth v1.0.0 // indirect
+	github.com/containerssh/configuration v1.0.0
+	github.com/containerssh/docker v1.0.0
+	github.com/containerssh/geoip v1.0.0
+	github.com/containerssh/kubernetes v1.0.0
+	github.com/containerssh/log v1.0.0
+	github.com/containerssh/metrics v1.0.0
+	github.com/containerssh/security v1.0.0
+	github.com/containerssh/service v1.0.0
+	github.com/containerssh/sshproxy v1.0.0
+	github.com/containerssh/sshserver v1.0.0
+	github.com/containerssh/structutils v1.0.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
-	golang.org/x/net v0.0.0-20210330210036-cd0ac97f97f6 // indirect
 	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558 // indirect
 )
 
