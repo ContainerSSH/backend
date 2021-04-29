@@ -3,13 +3,11 @@ module github.com/containerssh/backend
 go 1.14
 
 require (
-	github.com/containerssh/auditlog v1.0.0 // indirect
-	github.com/containerssh/auth v1.0.0 // indirect
 	github.com/containerssh/configuration v1.0.0
 	github.com/containerssh/docker v1.0.0
 	github.com/containerssh/geoip v1.0.0
 	github.com/containerssh/kubernetes v1.0.0
-	github.com/containerssh/log v1.0.0
+	github.com/containerssh/log v1.1.3
 	github.com/containerssh/metrics v1.0.0
 	github.com/containerssh/security v1.0.0
 	github.com/containerssh/service v1.0.0
@@ -18,7 +16,6 @@ require (
 	github.com/containerssh/structutils v1.0.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
-	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558 // indirect
 )
 
 // Exclude this package because it got renamed to /moby/ which breaks packages.
