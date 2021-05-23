@@ -7,14 +7,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/containerssh/configuration/v2"
-	"github.com/containerssh/docker/v2"
-	"github.com/containerssh/kubernetes/v2"
+	"github.com/containerssh/configuration/v3"
+	"github.com/containerssh/docker/v3"
+	"github.com/containerssh/kubernetes/v3"
 	"github.com/containerssh/log"
 	"github.com/containerssh/metrics"
-	"github.com/containerssh/security"
-	"github.com/containerssh/sshproxy"
-	"github.com/containerssh/sshserver"
+	"github.com/containerssh/security/v2"
+	"github.com/containerssh/sshproxy/v2"
+	"github.com/containerssh/sshserver/v2"
 	"github.com/containerssh/structutils"
 )
 
@@ -57,44 +57,46 @@ type networkHandler struct {
 	logger       log.Logger
 }
 
-func (n *networkHandler) OnAuthPassword(_ string, _ []byte) (response sshserver.AuthResponse, reason error) {
+func (n *networkHandler) OnAuthPassword(_ string, _ []byte, _ string) (response sshserver.AuthResponse, metadata map[string]string, reason error) {
 	return n.authResponse()
 }
 
-func (n *networkHandler) authResponse() (sshserver.AuthResponse, error) {
+func (n *networkHandler) authResponse() (sshserver.AuthResponse, map[string]string, error) {
 	switch n.rootHandler.authResponse {
 	case sshserver.AuthResponseUnavailable:
-		return sshserver.AuthResponseUnavailable, fmt.Errorf("the backend handler does not support authentication")
+		return sshserver.AuthResponseUnavailable, nil, fmt.Errorf("the backend handler does not support authentication")
 	default:
-		return n.rootHandler.authResponse, nil
+		return n.rootHandler.authResponse, nil, nil
 	}
 }
 
-func (n *networkHandler) OnAuthPubKey(_ string, _ string) (response sshserver.AuthResponse, reason error) {
+func (n *networkHandler) OnAuthPubKey(_ string, _ string, _ string) (response sshserver.AuthResponse, metadata map[string]string, reason error) {
 	return n.authResponse()
 }
 
 func (n *networkHandler) OnHandshakeFailed(_ error) {
 }
 
-func (n *networkHandler) OnHandshakeSuccess(username string) (
+func (n *networkHandler) OnHandshakeSuccess(username string, clientVersion string, metadata map[string]string) (
 	connection sshserver.SSHConnectionHandler,
 	failureReason error,
 ) {
-	appConfig, err := n.loadConnectionSpecificConfig(username)
+	appConfig, err := n.loadConnectionSpecificConfig(username, metadata)
 	if err != nil {
 		return nil, err
 	}
 
 	backendLogger := n.logger.WithLevel(appConfig.Log.Level).WithLabel("username", username)
 
-	return n.initBackend(username, appConfig, backendLogger)
+	return n.initBackend(username, appConfig, backendLogger, clientVersion, metadata)
 }
 
 func (n *networkHandler) initBackend(
 	username string,
 	appConfig configuration.AppConfig,
 	backendLogger log.Logger,
+	version string,
+	metadata map[string]string,
 ) (sshserver.SSHConnectionHandler, error) {
 	backend, failureReason := n.getConfiguredBackend(
 		appConfig,
@@ -113,7 +115,7 @@ func (n *networkHandler) initBackend(
 	}
 	n.backend = backend
 
-	return backend.OnHandshakeSuccess(username)
+	return backend.OnHandshakeSuccess(username, version, metadata)
 }
 
 func (n *networkHandler) getConfiguredBackend(
@@ -178,6 +180,7 @@ func (n *networkHandler) getConfiguredBackend(
 
 func (n *networkHandler) loadConnectionSpecificConfig(
 	username string,
+	metadata map[string]string,
 ) (
 	configuration.AppConfig,
 	error,
@@ -195,6 +198,7 @@ func (n *networkHandler) loadConnectionSpecificConfig(
 		username,
 		n.remoteAddr,
 		n.connectionID,
+		metadata,
 		&appConfig,
 	); err != nil {
 		return appConfig, fmt.Errorf("failed to load connections-specific configuration (%w)", err)

@@ -6,17 +6,17 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/containerssh/configuration/v2"
+	"github.com/containerssh/configuration/v3"
 	"github.com/containerssh/geoip"
 	"github.com/containerssh/log"
 	"github.com/containerssh/metrics"
 	"github.com/containerssh/service"
-	"github.com/containerssh/sshserver"
+	"github.com/containerssh/sshserver/v2"
 	"github.com/containerssh/structutils"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/containerssh/backend"
+	"github.com/containerssh/backend/v3"
 )
 
 func TestSimpleContainerLaunch(t *testing.T) {

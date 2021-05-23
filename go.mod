@@ -1,19 +1,19 @@
-module github.com/containerssh/backend/v2
+module github.com/containerssh/backend/v3
 
 go 1.16
 
 require (
 	github.com/aws/aws-sdk-go v1.38.45 // indirect
-	github.com/containerssh/configuration/v2 v2.0.1
-	github.com/containerssh/docker/v2 v2.0.1
+	github.com/containerssh/configuration/v3 v3.0.0
+	github.com/containerssh/docker/v3 v3.0.0
 	github.com/containerssh/geoip v1.0.0
-	github.com/containerssh/kubernetes/v2 v2.0.1
+	github.com/containerssh/kubernetes/v3 v3.0.0
 	github.com/containerssh/log v1.1.6
 	github.com/containerssh/metrics v1.0.0
-	github.com/containerssh/security v1.0.0
+	github.com/containerssh/security/v2 v2.0.0
 	github.com/containerssh/service v1.0.0
-	github.com/containerssh/sshproxy v1.0.0
-	github.com/containerssh/sshserver v1.0.0
+	github.com/containerssh/sshproxy/v2 v2.0.0
+	github.com/containerssh/sshserver/v2 v2.0.0
 	github.com/containerssh/structutils v1.0.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
@@ -49,3 +49,11 @@ replace (
 	gopkg.in/yaml.v2 v2.2.6 => gopkg.in/yaml.v2 v2.2.8
 	gopkg.in/yaml.v2 v2.2.7 => gopkg.in/yaml.v2 v2.2.8
 )
+
+replace github.com/containerssh/auth/v2 v2.0.0 => ../auth
+replace github.com/containerssh/sshserver/v2 v2.0.0 => ../sshserver
+replace github.com/containerssh/security/v2 v2.0.0 => ../security
+replace github.com/containerssh/sshproxy/v2 v2.0.0 => ../sshproxy
+replace github.com/containerssh/configuration/v3 v3.0.0 => ../configuration
+replace github.com/containerssh/docker/v3 v3.0.0 => ../docker
+replace github.com/containerssh/kubernetes/v3 v3.0.0 => ../kubernetes
