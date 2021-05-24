@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1: Bumped go mod path
+
+Bumped go mod path to `github.com/containerssh/backend/v2`.
+
 ## 2.0.0: Bugfix release
 
 This release fixes ContainerSSH bugs [#201](https://github.com/ContainerSSH/ContainerSSH/issues/201) and [#209](https://github.com/ContainerSSH/ContainerSSH/issues/209). This is a backwards incompatible change.

@@ -1,6 +1,6 @@
-module github.com/containerssh/backend
+module github.com/containerssh/backend/v2
 
-go 1.14
+go 1.16
 
 require (
 	github.com/aws/aws-sdk-go v1.38.45 // indirect
