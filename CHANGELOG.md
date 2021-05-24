@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.2: Bumped go mod path
+
+Bumped go mod path to `github.com/containerssh/backend/v2`.
+
 ## 2.0.1: Bumped go mod path
 
 Bumped go mod path to `github.com/containerssh/backend/v2`.
