@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/containerssh/configuration"
-	"github.com/containerssh/docker"
-	"github.com/containerssh/kubernetes"
+	"github.com/containerssh/configuration/v2"
+	"github.com/containerssh/docker/v2"
+	"github.com/containerssh/kubernetes/v2"
 	"github.com/containerssh/log"
 	"github.com/containerssh/metrics"
 	"github.com/containerssh/security"

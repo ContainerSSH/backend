@@ -3,7 +3,7 @@ package backend
 import (
 	"sync"
 
-	"github.com/containerssh/configuration"
+	"github.com/containerssh/configuration/v2"
 	"github.com/containerssh/log"
 	"github.com/containerssh/metrics"
 	"github.com/containerssh/sshserver"

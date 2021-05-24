@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0: Bugfix release
+
+This release fixes ContainerSSH bugs [#201](https://github.com/ContainerSSH/ContainerSSH/issues/201) and [#209](https://github.com/ContainerSSH/ContainerSSH/issues/209). This is a backwards incompatible change.
+
 ## 1.0.0: First stable release
 
 This is the first stable release for ContainerSSH 0.4.0.
