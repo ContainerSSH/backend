@@ -4,7 +4,8 @@ go 1.16
 
 require (
 	github.com/aws/aws-sdk-go v1.38.45 // indirect
-	github.com/containerssh/configuration/v2 v2.0.1
+	github.com/containerssh/backend v1.0.0
+	github.com/containerssh/configuration/v2 v2.1.0
 	github.com/containerssh/docker/v2 v2.0.1
 	github.com/containerssh/geoip v1.0.0
 	github.com/containerssh/kubernetes/v2 v2.0.1
